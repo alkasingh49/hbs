@@ -1,0 +1,11 @@
+<h1>Book Room</h1>
+
+<h3>{{ room.name }}</h3>
+
+<form method="POST">
+    {% csrf_token %}
+    
+    {{ form.as_p }}
+
+    <button type="submit">Book Now</button>
+</form>
