@@ -1,16 +1,11 @@
-from django.shortcuts import render, redirect
-from .forms import SignupForm
+from django.shortcuts import render
+from bookings.models import Booking
 
-def signup_view(request):
-    if request.method == 'POST':
-        form = SignupForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('login')
-    else:
-        form = SignupForm()
 
-    return render(request, 'registration/signup.html', {'form': form})
+def profile(request):
 
-def profile_view(request):
-    return render(request, 'registration/profile.html')
+    bookings = Booking.objects.filter(user=request.user)
+
+    return render(request, 'profile.html', {
+        'bookings': bookings
+    })
