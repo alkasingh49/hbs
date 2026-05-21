@@ -1,10 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
 
 from .models import Booking
 from rooms.models import Room
 from .forms import BookingForm
 
 
+@login_required
 def book_room(request, room_id):
 
     room = get_object_or_404(Room, id=room_id)
