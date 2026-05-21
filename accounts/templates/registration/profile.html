@@ -5,21 +5,35 @@
 
 <div class="container mt-5">
 
-    <h1 class="mb-4">My Bookings</h1>
+    <div class="d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-end mb-4">
+        <div>
+            <p class="text-uppercase text-primary fw-semibold mb-1">Account</p>
+            <h1 class="mb-1">My Bookings</h1>
+            <p class="text-muted mb-0">Upcoming and past reservations for {{ user.username }}.</p>
+        </div>
 
-    <div class="row">
+        <a href="{% url 'room_list' %}" class="btn btn-primary">Book Another Room</a>
+    </div>
+
+    <div class="row g-4">
 
         {% for booking in bookings %}
 
-        <div class="col-md-4">
+        <div class="col-md-6 col-xl-4">
 
-            <div class="card shadow-sm mb-4">
+            <div class="card room-card shadow-sm h-100">
 
                 <div class="card-body">
 
-                    <h3>
-                        Room {{ booking.room.room_number }}
-                    </h3>
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h3 class="h4 mb-1">
+                                Room {{ booking.room.room_number }}
+                            </h3>
+                            <p class="text-muted mb-0">{{ booking.room.room_type }}</p>
+                        </div>
+                        <span class="badge text-bg-primary">{{ booking.nights }} night{{ booking.nights|pluralize }}</span>
+                    </div>
 
                     <p>
                         <strong>Check In:</strong>
@@ -31,6 +45,11 @@
                         {{ booking.check_out }}
                     </p>
 
+                    <div class="stat-tile mt-3">
+                        <span class="text-muted d-block small">Total</span>
+                        <strong class="fs-4">₹{{ booking.total_price }}</strong>
+                    </div>
+
                 </div>
 
             </div>
@@ -39,7 +58,13 @@
 
         {% empty %}
 
-        <p>No bookings yet</p>
+        <div class="col-12">
+            <div class="text-center bg-white border rounded-3 p-5">
+                <h2 class="h4">No bookings yet</h2>
+                <p class="text-muted">Choose a room and your reservation will appear here.</p>
+                <a href="{% url 'room_list' %}" class="btn btn-primary">Browse Rooms</a>
+            </div>
+        </div>
 
         {% endfor %}
 
