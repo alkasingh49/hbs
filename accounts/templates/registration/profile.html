@@ -46,7 +46,21 @@
                     </p>
 
                     <div class="stat-tile mt-3">
-                        <span class="text-muted d-block small">Total</span>
+                        <span class="text-muted d-block small">Subtotal</span>
+                        <strong>₹{{ booking.subtotal }}</strong>
+                    </div>
+
+                    {% if booking.discount_percent %}
+                    <div class="stat-tile mt-3">
+                        <span class="text-muted d-block small">
+                            Discount{% if booking.coupon %} - {{ booking.coupon.code }}{% endif %}
+                        </span>
+                        <strong class="text-success">₹{{ booking.discount_amount }} ({{ booking.discount_percent }}% off)</strong>
+                    </div>
+                    {% endif %}
+
+                    <div class="stat-tile mt-3">
+                        <span class="text-muted d-block small">Final total</span>
                         <strong class="fs-4">₹{{ booking.total_price }}</strong>
                     </div>
 

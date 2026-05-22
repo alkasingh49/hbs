@@ -47,9 +47,26 @@
 
                     <div class="row g-3">
                         {% for field in form %}
-                            <div class="col-md-6">
+                            <div class="{% if field.name == 'coupon_code' %}col-12{% else %}col-md-6{% endif %}">
                                 <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
                                 {{ field }}
+                                {% if field.name == 'check_in' %}
+                                    <div class="form-text">Choose today or a future date.</div>
+                                {% elif field.name == 'check_out' %}
+                                    <div class="form-text">Check-out must be after check-in.</div>
+                                {% endif %}
+                                {% if field.name == 'coupon_code' %}
+                                    <div class="form-text">Use an active coupon from hotel admin.</div>
+                                    {% if active_coupons %}
+                                        <div class="d-flex flex-wrap gap-2 mt-2">
+                                            {% for coupon in active_coupons %}
+                                                <button type="button" class="btn btn-sm btn-outline-primary coupon-button" data-coupon="{{ coupon.code }}">
+                                                    {{ coupon.code }} - {{ coupon.discount_percent }}% off
+                                                </button>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
                                 {% if field.errors %}
                                     <div class="invalid-feedback d-block">{{ field.errors|striptags }}</div>
                                 {% endif %}
@@ -62,6 +79,19 @@
                             <div class="stat-tile h-100">
                                 <span class="text-muted d-block small">Nights</span>
                                 <strong class="fs-4" id="nightCount">0</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="stat-tile h-100">
+                                <span class="text-muted d-block small">Subtotal</span>
+                                <strong class="fs-4" id="bookingSubtotal">₹0</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="stat-tile h-100">
+                                <span class="text-muted d-block small">Discount</span>
+                                <strong class="fs-4 text-success" id="bookingDiscount">₹0</strong>
+                                <span class="text-muted small d-block" id="couponHint">No coupon applied</span>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -83,13 +113,19 @@
 {% endblock %}
 
 {% block scripts %}
+{{ coupon_discounts|json_script:"coupon-discounts" }}
 <script>
     const bookingForm = document.getElementById('bookingForm');
     const checkIn = document.querySelector('[data-booking-start]');
     const checkOut = document.querySelector('[data-booking-end]');
+    const couponCode = document.querySelector('[data-coupon-code]');
     const nightCount = document.getElementById('nightCount');
+    const bookingSubtotal = document.getElementById('bookingSubtotal');
+    const bookingDiscount = document.getElementById('bookingDiscount');
     const bookingTotal = document.getElementById('bookingTotal');
+    const couponHint = document.getElementById('couponHint');
     const nightlyPrice = Number(bookingForm.dataset.nightlyPrice);
+    const couponDiscounts = JSON.parse(document.getElementById('coupon-discounts').textContent);
     const today = new Date().toISOString().split('T')[0];
 
     checkIn.min = today;
@@ -105,13 +141,35 @@
         const start = checkIn.valueAsDate;
         const end = checkOut.valueAsDate;
         const nights = start && end ? Math.max((end - start) / 86400000, 0) : 0;
+        const subtotal = nights * nightlyPrice;
+        const code = couponCode.value.trim().toUpperCase();
+        const discountPercent = couponDiscounts[code] || 0;
+        const discount = Math.round(subtotal * discountPercent / 100);
+        const total = Math.max(subtotal - discount, 0);
 
         nightCount.textContent = nights;
-        bookingTotal.textContent = `₹${Number(nights * nightlyPrice).toLocaleString('en-IN')}`;
+        bookingSubtotal.textContent = `₹${Number(subtotal).toLocaleString('en-IN')}`;
+        bookingDiscount.textContent = `₹${Number(discount).toLocaleString('en-IN')}`;
+        bookingTotal.textContent = `₹${Number(total).toLocaleString('en-IN')}`;
+
+        if (code && discountPercent) {
+            couponHint.textContent = `${code} applied (${discountPercent}% off)`;
+        } else if (code) {
+            couponHint.textContent = 'Coupon will be validated at checkout';
+        } else {
+            couponHint.textContent = 'No coupon applied';
+        }
     }
 
     checkIn.addEventListener('change', updateSummary);
     checkOut.addEventListener('change', updateSummary);
+    couponCode.addEventListener('input', updateSummary);
+    document.querySelectorAll('.coupon-button').forEach((button) => {
+        button.addEventListener('click', () => {
+            couponCode.value = button.dataset.coupon;
+            updateSummary();
+        });
+    });
     updateSummary();
 </script>
 {% endblock %}
