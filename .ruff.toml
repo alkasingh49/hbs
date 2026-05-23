@@ -1,0 +1,8 @@
+line-length = 88
+target-version = "py312"
+exclude = ["build/", "dist/", ".venv/", "__pycache__", "db.sqlite3", ".git/"]
+
+[lint]
+select = ["E", "F", "I", "C"]
+ignore = ["E501"]
+per-file-ignores = {"**/__init__.py" = ["F401"]}

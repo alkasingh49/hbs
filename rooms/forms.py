@@ -60,3 +60,27 @@ class RoomSearchForm(forms.Form):
             self.add_error('check_out', 'Check-out date must be after check-in date.')
 
         return cleaned_data
+
+
+class RoomForm(forms.ModelForm):
+    class Meta:
+        model = Room
+        fields = ['room_number', 'room_type', 'price', 'available']
+        labels = {
+            'room_number': 'Room Number',
+            'room_type': 'Room Type',
+            'price': 'Nightly Price',
+            'available': 'Available',
+        }
+        widgets = {
+            'room_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'room_type': forms.TextInput(attrs={'class': 'form-control'}),
+            'price': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'available': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def clean_price(self):
+        price = self.cleaned_data.get('price')
+        if price is not None and price < 0:
+            raise forms.ValidationError('Price must be 0 or greater.')
+        return price

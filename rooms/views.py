@@ -1,8 +1,15 @@
-from django.shortcuts import render
+from django.contrib import messages
+from django.contrib.auth.decorators import user_passes_test
+from django.shortcuts import get_object_or_404, redirect, render
 
 from bookings.models import Booking
-from .forms import RoomSearchForm
+
+from .forms import RoomForm, RoomSearchForm
 from .models import Room
+
+
+def is_manager(user):
+    return user.is_authenticated and user.is_staff
 
 
 def room_list(request):
@@ -43,4 +50,30 @@ def room_list(request):
         'form': form,
         'selected_check_in': selected_check_in,
         'selected_check_out': selected_check_out,
+    })
+
+
+@user_passes_test(is_manager, login_url='login')
+def manage_rooms(request):
+    rooms = Room.objects.all().order_by('room_number')
+    return render(request, 'rooms/room_management.html', {
+        'rooms': rooms,
+    })
+
+
+@user_passes_test(is_manager, login_url='login')
+def edit_room(request, room_id=None):
+    room = get_object_or_404(Room, pk=room_id) if room_id else None
+    if request.method == 'POST':
+        form = RoomForm(request.POST, instance=room)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Room saved successfully.')
+            return redirect('manage_rooms')
+    else:
+        form = RoomForm(instance=room)
+
+    return render(request, 'rooms/room_form.html', {
+        'form': form,
+        'room': room,
     })

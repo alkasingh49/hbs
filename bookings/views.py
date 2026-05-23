@@ -1,9 +1,11 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
+from django.db import transaction
+from django.shortcuts import get_object_or_404, redirect, render
 
 from rooms.models import Room
+
 from .forms import BookingForm
 from .models import Booking, Coupon
 
@@ -48,30 +50,32 @@ def book_room(request, room_id):
             check_in = form.cleaned_data['check_in']
             check_out = form.cleaned_data['check_out']
 
-            if room_has_overlapping_booking(room, check_in, check_out):
-                messages.error(
-                    request,
-                    'This room is already booked for the selected dates. Please choose different dates.',
-                )
-                return render(
-                    request,
-                    'bookings/book_room.html',
-                    booking_context(form, room, active_coupons),
-                )
-
-            booking = form.save(commit=False)
-            booking.room = room
-            booking.user = request.user
-            booking.coupon = form.coupon
-            booking.discount_percent = form.coupon.discount_percent if form.coupon else 0
-
             try:
-                booking.full_clean()
-                booking.save()
-            except ValidationError:
+                with transaction.atomic():
+                    Room.objects.select_for_update().get(pk=room.pk)
+
+                    if room_has_overlapping_booking(room, check_in, check_out):
+                        messages.error(
+                            request,
+                            'This room is already booked for the selected dates. Please choose different dates.',
+                        )
+                        return render(
+                            request,
+                            'bookings/book_room.html',
+                            booking_context(form, room, active_coupons),
+                        )
+
+                    booking = form.save(commit=False)
+                    booking.room = room
+                    booking.user = request.user
+                    booking.coupon = form.coupon
+                    booking.discount_percent = form.coupon.discount_percent if form.coupon else 0
+
+                    booking.save()
+            except ValidationError as exc:
                 messages.error(
                     request,
-                    'This booking could not be completed. Please review the selected dates.',
+                    exc.messages[0] if exc.messages else 'This booking could not be completed. Please review the selected dates.',
                 )
                 return render(
                     request,

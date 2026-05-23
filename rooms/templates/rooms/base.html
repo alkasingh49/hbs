@@ -59,6 +59,9 @@
             <div class="navbar-nav ms-auto align-items-lg-center gap-2">
                 <a href="/" class="nav-link">Rooms</a>
                 {% if user.is_authenticated %}
+                    {% if user.is_staff %}
+                        <a href="{% url 'manage_rooms' %}" class="nav-link">Manager</a>
+                    {% endif %}
                     <a href="/profile/" class="btn btn-outline-light">My Bookings</a>
                     <form method="post" action="{% url 'logout' %}" class="m-0">
                         {% csrf_token %}
@@ -66,6 +69,7 @@
                     </form>
                 {% else %}
                     <a href="{% url 'login' %}" class="btn btn-outline-light">Login</a>
+                    <a href="{% url 'signup' %}" class="btn btn-light">Sign Up</a>
                 {% endif %}
             </div>
         </div>

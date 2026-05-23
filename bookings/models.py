@@ -1,6 +1,6 @@
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
@@ -101,6 +101,10 @@ class Booking(models.Model):
 
         if errors:
             raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.user.username} booked room {self.room.room_number}"

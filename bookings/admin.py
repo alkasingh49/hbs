@@ -18,6 +18,7 @@ class BookingAdmin(admin.ModelAdmin):
         'user',
         'check_in',
         'check_out',
+        'nights',
         'coupon',
         'discount_percent',
         'total_price',
@@ -25,3 +26,8 @@ class BookingAdmin(admin.ModelAdmin):
     list_filter = ('check_in', 'check_out', 'coupon')
     search_fields = ('room__room_number', 'user__username', 'coupon__code')
     readonly_fields = ('created_at',)
+    date_hierarchy = 'check_in'
+
+    @admin.display(ordering='check_in', description='Nights')
+    def nights(self, obj):
+        return obj.nights
