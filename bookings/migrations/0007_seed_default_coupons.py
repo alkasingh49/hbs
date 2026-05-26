@@ -1,6 +1,5 @@
 from django.db import migrations
 
-
 DEFAULT_COUPONS = [
     ('WELCOME10', 10),
     ('SUMMER15', 15),

@@ -6,6 +6,7 @@ from django.test import TestCase
 from django.utils import timezone
 
 from rooms.models import Room
+
 from .forms import BookingForm
 from .models import Booking, Coupon
 

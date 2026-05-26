@@ -5,6 +5,7 @@ from django.test import TestCase
 from django.utils import timezone
 
 from bookings.models import Booking
+
 from .models import Room
 
 
